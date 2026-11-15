@@ -1,0 +1,89 @@
+package com.healthapp.diagnosis;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity; 
+
+import java.util.*;
+
+@SpringBootApplication
+public class DiagnosisApplication {
+    public static void main(String[] args) { 
+        SpringApplication.run(DiagnosisApplication.class, args);
+    }
+}
+
+@RestController
+@RequestMapping("/api/v1")
+class TelehealthController {
+
+    private static final Map<String, String[]> DIAGNOSIS_MATRIX = new HashMap<>();
+
+    static {
+        DIAGNOSIS_MATRIX.put("fever", new String[]{"Viral or Bacterial Infection", "Complete Blood Count (CBC) / PCR Test", "Medium"});
+        DIAGNOSIS_MATRIX.put("cough", new String[]{"Bronchitis or Respiratory Infection", "Chest X-Ray", "Low"});
+        DIAGNOSIS_MATRIX.put("shortness_of_breath", new String[]{"Asthma Exacerbation or Pneumonia", "Pulse Oximetry / Spirometry", "High"});
+        DIAGNOSIS_MATRIX.put("sore_throat", new String[]{"Pharyngitis or Strep Throat", "Rapid Strep Swab Test", "Low"});
+        DIAGNOSIS_MATRIX.put("runny_nose", new String[]{"Allergic Rhinitis or Common Cold", "No immediate test required", "Low"});
+        DIAGNOSIS_MATRIX.put("chest_pain", new String[]{"Cardiovascular Concern / Angina", "12-Lead ECG / Troponin Blood Test", "High"});
+        DIAGNOSIS_MATRIX.put("heart_palpitations", new String[]{"Arrhythmia or Anxiety-induced Tachycardia", "Holter Monitor tracking", "Medium"});
+        DIAGNOSIS_MATRIX.put("dizziness", new String[]{"Orthostatic Hypotension or Inner Ear Issue", "Blood Pressure Check / Vestibular Exam", "Medium"});
+        DIAGNOSIS_MATRIX.put("stomach_pain", new String[]{"Gastritis or Appendicitis (if localized lower right)", "Abdominal Ultrasound / CT Scan", "Medium"});
+        DIAGNOSIS_MATRIX.put("nausea", new String[]{"Gastroenteritis or Food Intolerance", "Electrolyte Panel", "Low"});
+        DIAGNOSIS_MATRIX.put("heartburn", new String[]{"Acid Reflux / GERD", "Endoscopy (if chronic)", "Low"});
+        DIAGNOSIS_MATRIX.put("diarrhea", new String[]{"Gastrointestinal Infection", "Stool Culture Test", "Low"});
+        DIAGNOSIS_MATRIX.put("headache", new String[]{"Migraine or Tension Headache", "Neurological Exam / MRI (if severe & sudden)", "Low"});
+        DIAGNOSIS_MATRIX.put("back_pain", new String[]{"Muscle Strain or Lumbar Disc Herniation", "Spine X-Ray / MRI", "Low"});
+        DIAGNOSIS_MATRIX.put("joint_stiffness", new String[]{"Osteoarthritis or Rheumatoid Arthritis", "Rheumatoid Factor (RF) Blood Test", "Medium"});
+        DIAGNOSIS_MATRIX.put("numbness", new String[]{"Peripheral Neuropathy or Nerve Compression", "Nerve Conduction Study (NCS)", "Medium"});
+        DIAGNOSIS_MATRIX.put("rash", new String[]{"Allergic Reaction or Contact Dermatitis", "Allergy Patch Testing", "Low"});
+        DIAGNOSIS_MATRIX.put("fatigue", new String[]{"Anemia, Vitamin Deficiency, or Hypothyroidism", "Thyroid Panel (TSH) / Iron Test", "Medium"});
+        DIAGNOSIS_MATRIX.put("blurry_vision", new String[]{"Refractive Error or Elevated Blood Sugar", "Comprehensive Eye Exam / HbA1c Test", "Medium"});
+    }
+
+    @PostMapping("/diagnose")
+    public ResponseEntity<Map<String, Object>> diagnoseSelf(@RequestBody Map<String, List<String>> request) {
+        List<String> symptoms = request.getOrDefault("symptoms", Collections.emptyList());
+        
+        Set<String> diagnoses = new HashSet<>();
+        Set<String> tests = new HashSet<>();
+        String overallUrgency = "Low";
+
+        for (String symptom : symptoms) {
+            String cleanSymptom = symptom.toLowerCase().trim();
+            if (DIAGNOSIS_MATRIX.containsKey(cleanSymptom)) {
+                String[] details = DIAGNOSIS_MATRIX.get(cleanSymptom);
+                diagnoses.add(details[0]); 
+                tests.add(details[1]);     
+                
+                String itemUrgency = details[2];
+                if (itemUrgency.equals("High")) {
+                    overallUrgency = "High";
+                } else if (itemUrgency.equals("Medium") && !overallUrgency.equals("High")) {
+                    overallUrgency = "Medium";
+                }
+            }
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("possibleConditions", diagnoses);
+        response.put("requiredTests", tests);
+        response.put("urgencyLevel", overallUrgency);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/consultations/call")
+    public ResponseEntity<Map<String, String>> initiateDoctorCall(@RequestBody Map<String, String> contactInfo) {
+        String patientId = contactInfo.get("patientId");
+        String doctorId = contactInfo.get("doctorId");
+
+        System.out.println("Connecting Patient " + patientId + " with Doctor " + doctorId + " via secure bridge.");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "Connecting");
+        response.put("bridgeId", UUID.randomUUID().toString());
+        return ResponseEntity.ok(response);
+    }
+}
