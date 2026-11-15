@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <title>HealthConnect — Telehealth</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17323b;
+      --muted: #60777d;
+      --line: #dce8e7;
+      --teal: #0f766e;
+      --teal-dark: #0b5b55;
+      --surface: #fff;
+      --page: #f3f8f7;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--page); line-height: 1.5; }
+    header { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .topbar, main { width: min(100% - 32px, 960px); margin: 0 auto; }
+    .topbar { min-height: 72px; display: flex; align-items: center; gap: 12px; }
+    .logo { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; color: white; background: var(--teal); font-weight: 800; font-size: 22px; }
+    .brand { font-size: 19px; font-weight: 750; letter-spacing: -.03em; }
+    .brand small { display: block; color: var(--muted); font-size: 12px; font-weight: 500; letter-spacing: 0; }
+    main { padding: 38px 0 56px; }
+    .intro { margin-bottom: 24px; }
+    .eyebrow { color: var(--teal); font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: .12em; }
+    h1 { margin: 6px 0 8px; font-size: clamp(28px, 5vw, 40px); line-height: 1.15; letter-spacing: -.04em; }
+    .intro p { max-width: 650px; margin: 0; color: var(--muted); }
+    .notice { margin: 22px 0; padding: 14px 16px; border: 1px solid #f1d59b; border-radius: 12px; background: #fff9e9; color: #684d16; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+    .card { padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: 0 8px 24px #214a4210; }
+    h2 { margin: 0 0 6px; font-size: 20px; letter-spacing: -.02em; }
+    .hint { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+    label { display: block; margin: 14px 0 6px; font-size: 13px; font-weight: 650; }
+    select, input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #cbdad8; border-radius: 9px; background: white; color: var(--ink); font: inherit; }
+    select:focus, input:focus { outline: 3px solid #0f766e2b; border-color: var(--teal); }
+    .symptoms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 245px; overflow: auto; padding: 10px; border: 1px solid var(--line); border-radius: 10px; }
+    .symptoms label { display: flex; align-items: center; gap: 8px; margin: 0; padding: 6px 2px; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .symptoms input { width: 16px; min-height: 16px; height: 16px; margin: 0; accent-color: var(--teal); }
+    button { min-height: 44px; margin-top: 16px; padding: 10px 16px; border: 0; border-radius: 9px; background: var(--teal); color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    button:hover { background: var(--teal-dark); }
+    button:disabled { opacity: .65; cursor: wait; }
+    .result { margin-top: 18px; padding: 14px; border-radius: 10px; background: #f2f8f7; }
+    .result[hidden] { display: none; }
+    .result h3 { margin: 0 0 10px; font-size: 15px; }
+    .result p { margin: 7px 0; font-size: 14px; }
+    .result strong { color: var(--teal-dark); }
+    .error { color: #a42a2a; }
+    .urgent { color: #a42a2a !important; }
+    footer { padding-top: 22px; color: var(--muted); font-size: 12px; text-align: center; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } main { padding-top: 26px; } }
+    @media (max-width: 420px) { .symptoms { grid-template-columns: 1fr; } .card { padding: 18px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="logo" aria-hidden="true">+</div>
+      <div class="brand">HealthConnect<small>Telehealth support</small></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div class="eyebrow">Care starts with a conversation</div>
+      <h1 id="page-title">How can we help today?</h1>
+      <p>Share your symptoms for general guidance, or request a connection with your doctor.</p>
+    </section>
+
+    <aside class="notice" role="note"><strong>Important:</strong> This tool does not provide a medical diagnosis and is not a substitute for professional care. If you may be experiencing a medical emergency—including severe chest pain or difficulty breathing—contact your local emergency services now.</aside>
+
+    <div class="grid">
+      <section class="card" aria-labelledby="diagnosis-title">
+        <h2 id="diagnosis-title">Symptom guidance</h2>
+        <p class="hint">Select all symptoms that apply. A clinician can assess your situation and recommend next steps.</p>
+        <form id="diagnosis-form">
+          <div class="symptoms" aria-label="Symptoms">
+            <label><input type="checkbox" name="symptom" value="fever"> Fever</label>
+            <label><input type="checkbox" name="symptom" value="cough"> Cough</label>
+            <label><input type="checkbox" name="symptom" value="shortness_of_breath"> Shortness of breath</label>
+            <label><input type="checkbox" name="symptom" value="sore_throat"> Sore throat</label>
+            <label><input type="checkbox" name="symptom" value="runny_nose"> Runny nose</label>
+            <label><input type="checkbox" name="symptom" value="chest_pain"> Chest pain</label>
+            <label><input type="checkbox" name="symptom" value="heart_palpitations"> Heart palpitations</label>
+            <label><input type="checkbox" name="symptom" value="dizziness"> Dizziness</label>
+            <label><input type="checkbox" name="symptom" value="stomach_pain"> Stomach pain</label>
+            <label><input type="checkbox" name="symptom" value="nausea"> Nausea</label>
+            <label><input type="checkbox" name="symptom" value="heartburn"> Heartburn</label>
+            <label><input type="checkbox" name="symptom" value="diarrhea"> Diarrhea</label>
+            <label><input type="checkbox" name="symptom" value="headache"> Headache</label>
+            <label><input type="checkbox" name="symptom" value="back_pain"> Back pain</label>
+            <label><input type="checkbox" name="symptom" value="joint_stiffness"> Joint stiffness</label>
+            <label><input type="checkbox" name="symptom" value="numbness"> Numbness</label>
+            <label><input type="checkbox" name="symptom" value="rash"> Rash</label>
+            <label><input type="checkbox" name="symptom" value="fatigue"> Fatigue</label>
+            <label><input type="checkbox" name="symptom" value="blurry_vision"> Blurry vision</label>
+          </div>
+          <button type="submit">Get general guidance</button>
+        </form>
+        <div id="diagnosis-result" class="result" aria-live="polite" hidden></div>
+      </section>
+
+      <section class="card" aria-labelledby="consult-title">
+        <h2 id="consult-title">Request a doctor call</h2>
+        <p class="hint">Enter the patient and doctor IDs provided by your care team.</p>
+        <form id="consult-form">
+          <label for="patient-id">Patient ID</label>
+          <input id="patient-id" name="patientId" autocomplete="off" required>
+          <label for="doctor-id">Doctor ID</label>
+          <input id="doctor-id" name="doctorId" autocomplete="off" required>
+          <button type="submit">Request connection</button>
+        </form>
+        <div id="consult-result" class="result" aria-live="polite" hidden></div>
+      </section>
+    </div>
+    <footer>For informational use only. Your healthcare professional is the best source for advice about your health.</footer>
+  </main>
+
+  <script>
+    const diagnosisForm = document.querySelector('#diagnosis-form');
+    const diagnosisResult = document.querySelector('#diagnosis-result');
+    const consultForm = document.querySelector('#consult-form');
+    const consultResult = document.querySelector('#consult-result');
+
+    function showError(element, message) {
+      element.hidden = false;
+      element.innerHTML = `<p class="error">${message}</p>`;
+    }
+
+    diagnosisForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const symptoms = [...diagnosisForm.querySelectorAll('input[name="symptom"]:checked')].map((input) => input.value);
+      if (!symptoms.length) {
+        showError(diagnosisResult, 'Please select at least one symptom.');
+        return;
+      }
+      const button = diagnosisForm.querySelector('button');
+      button.disabled = true;
+      diagnosisResult.hidden = false;
+      diagnosisResult.textContent = 'Getting guidance…';
+      try {
+        const response = await fetch('/api/v1/diagnose', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symptoms })
+        });
+        if (!response.ok) throw new Error('The guidance service is unavailable. Please try again later.');
+        const data = await response.json();
+        const conditions = data.possibleConditions || [];
+        const tests = data.requiredTests || [];
+        diagnosisResult.innerHTML = '';
+        const title = document.createElement('h3');
+        title.textContent = 'General guidance — not a diagnosis';
+        const urgency = document.createElement('p');
+        urgency.innerHTML = 'Urgency indicator: <strong></strong>';
+        urgency.querySelector('strong').textContent = data.urgencyLevel || 'Not available';
+        if (data.urgencyLevel === 'High') urgency.querySelector('strong').classList.add('urgent');
+        const conditionsLine = document.createElement('p');
+        conditionsLine.innerHTML = '<strong>Possible conditions to discuss with a clinician:</strong> ';
+        conditionsLine.append(document.createTextNode(conditions.length ? conditions.join(', ') : 'No matching guidance found.'));
+        const testsLine = document.createElement('p');
+        testsLine.innerHTML = '<strong>Tests to discuss with a clinician:</strong> ';
+        testsLine.append(document.createTextNode(tests.length ? tests.join(', ') : 'None listed.'));
+        diagnosisResult.append(title, urgency, conditionsLine, testsLine);
+      } catch (error) {
+        showError(diagnosisResult, error.message || 'Unable to get guidance right now.');
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    consultForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = consultForm.querySelector('button');
+      button.disabled = true;
+      consultResult.hidden = false;
+      consultResult.textContent = 'Sending request…';
+      try {
+        const response = await fetch('/api/v1/consultations/call', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientId: consultForm.elements.patientId.value.trim(),
+            doctorId: consultForm.elements.doctorId.value.trim()
+          })
+        });
+        if (!response.ok) throw new Error('The call service is unavailable. Please try again later.');
+        const data = await response.json();
+        consultResult.textContent = `Status: ${data.status || 'Request received'}${data.bridgeId ? ` · Reference: ${data.bridgeId}` : ''}`;
+      } catch (error) {
+        showError(consultResult, error.message || 'Unable to send your request right now.');
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
